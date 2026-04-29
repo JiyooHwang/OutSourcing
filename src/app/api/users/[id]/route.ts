@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { handleApiError, requireAdmin } from "@/lib/auth-utils";
+import { logAudit } from "@/lib/audit";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -29,11 +30,30 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       );
     }
 
+    const before = await prisma.user.findUnique({
+      where: { id },
+      select: { id: true, email: true, role: true },
+    });
+    if (!before)
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+
     const user = await prisma.user.update({
       where: { id },
       data: { role: parsed.data.role },
       select: { id: true, role: true, email: true, name: true },
     });
+
+    if (before.role !== user.role) {
+      await logAudit({
+        session,
+        action: "UPDATE",
+        entity: "USER",
+        entityId: user.id,
+        summary: `사용자 ${user.email} 역할 변경: ${before.role} → ${user.role}`,
+        changes: { role: { from: before.role, to: user.role } },
+      });
+    }
+
     return NextResponse.json(user);
   } catch (e) {
     return handleApiError(e);
@@ -50,7 +70,22 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
         { status: 400 }
       );
     }
+    const before = await prisma.user.findUnique({
+      where: { id },
+      select: { email: true, role: true },
+    });
+    if (!before)
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+
     await prisma.user.delete({ where: { id } });
+    await logAudit({
+      session,
+      action: "DELETE",
+      entity: "USER",
+      entityId: id,
+      summary: `사용자 삭제: ${before.email}`,
+      changes: before,
+    });
     return NextResponse.json({ ok: true });
   } catch (e) {
     return handleApiError(e);

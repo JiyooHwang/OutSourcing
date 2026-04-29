@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { paymentSchema } from "@/lib/validators";
+import { handleApiError, requireAuth } from "@/lib/auth-utils";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(req: NextRequest) {
   const sp = req.nextUrl.searchParams;
@@ -28,25 +30,42 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const parsed = paymentSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  try {
+    const session = await requireAuth();
+    const body = await req.json();
+    const parsed = paymentSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.flatten() },
+        { status: 400 }
+      );
+    }
+    const d = parsed.data;
+    const payment = await prisma.payment.create({
+      data: {
+        vendorId: d.vendorId,
+        projectName: d.projectName,
+        description: d.description || null,
+        amount: d.amount,
+        currency: d.currency,
+        status: d.status,
+        invoiceDate: d.invoiceDate ? new Date(d.invoiceDate) : null,
+        dueDate: d.dueDate ? new Date(d.dueDate) : null,
+        paidDate: d.paidDate ? new Date(d.paidDate) : null,
+        notes: d.notes || null,
+      },
+      include: { vendor: { select: { name: true } } },
+    });
+    await logAudit({
+      session,
+      action: "CREATE",
+      entity: "PAYMENT",
+      entityId: payment.id,
+      summary: `외주비 등록: ${payment.vendor.name} · ${payment.projectName} (${payment.amount} ${payment.currency})`,
+      changes: d,
+    });
+    return NextResponse.json(payment, { status: 201 });
+  } catch (e) {
+    return handleApiError(e);
   }
-  const d = parsed.data;
-  const payment = await prisma.payment.create({
-    data: {
-      vendorId: d.vendorId,
-      projectName: d.projectName,
-      description: d.description || null,
-      amount: d.amount,
-      currency: d.currency,
-      status: d.status,
-      invoiceDate: d.invoiceDate ? new Date(d.invoiceDate) : null,
-      dueDate: d.dueDate ? new Date(d.dueDate) : null,
-      paidDate: d.paidDate ? new Date(d.paidDate) : null,
-      notes: d.notes || null,
-    },
-  });
-  return NextResponse.json(payment, { status: 201 });
 }

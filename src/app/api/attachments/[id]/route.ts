@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ApiError, handleApiError, requireAuth } from "@/lib/auth-utils";
+import { logAudit } from "@/lib/audit";
 import { deleteObject } from "@/lib/s3";
 
 type Params = { params: Promise<{ id: string }> };
@@ -9,7 +10,12 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   try {
     const session = await requireAuth();
     const { id } = await params;
-    const attachment = await prisma.attachment.findUnique({ where: { id } });
+    const attachment = await prisma.attachment.findUnique({
+      where: { id },
+      include: {
+        payment: { include: { vendor: { select: { name: true } } } },
+      },
+    });
     if (!attachment) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
@@ -29,6 +35,17 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
       console.error("S3 객체 삭제 실패:", e);
     }
     await prisma.attachment.delete({ where: { id } });
+    await logAudit({
+      session,
+      action: "DELETE",
+      entity: "ATTACHMENT",
+      entityId: id,
+      summary: `첨부 삭제: ${attachment.payment.vendor.name} · ${attachment.payment.projectName} - ${attachment.fileName}`,
+      changes: {
+        paymentId: attachment.paymentId,
+        fileName: attachment.fileName,
+      },
+    });
     return NextResponse.json({ ok: true });
   } catch (e) {
     return handleApiError(e);

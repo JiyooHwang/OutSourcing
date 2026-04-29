@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { handleApiError, requireAuth } from "@/lib/auth-utils";
+import { logAudit } from "@/lib/audit";
 import { MAX_UPLOAD_BYTES } from "@/lib/s3";
 
 const registerSchema = z.object({
@@ -34,7 +35,10 @@ export async function POST(req: NextRequest, { params }: Params) {
   try {
     const session = await requireAuth();
     const { id } = await params;
-    const payment = await prisma.payment.findUnique({ where: { id } });
+    const payment = await prisma.payment.findUnique({
+      where: { id },
+      include: { vendor: { select: { name: true } } },
+    });
     if (!payment) {
       return NextResponse.json(
         { error: "외주비 항목을 찾을 수 없습니다." },
@@ -57,6 +61,18 @@ export async function POST(req: NextRequest, { params }: Params) {
         mimeType: parsed.data.mimeType,
         storageKey: parsed.data.storageKey,
         uploadedById: session.user.id,
+      },
+    });
+    await logAudit({
+      session,
+      action: "CREATE",
+      entity: "ATTACHMENT",
+      entityId: attachment.id,
+      summary: `첨부 업로드: ${payment.vendor.name} · ${payment.projectName} - ${attachment.fileName}`,
+      changes: {
+        paymentId: id,
+        fileName: attachment.fileName,
+        fileSize: attachment.fileSize,
       },
     });
     return NextResponse.json(attachment, { status: 201 });

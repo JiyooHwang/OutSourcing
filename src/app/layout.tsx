@@ -40,12 +40,20 @@ export default async function RootLayout({
                   외주비 관리
                 </Link>
                 {user.role === "ADMIN" && (
-                  <Link
-                    href="/admin/users"
-                    className="px-3 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-md"
-                  >
-                    사용자 관리
-                  </Link>
+                  <>
+                    <Link
+                      href="/admin/users"
+                      className="px-3 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-md"
+                    >
+                      사용자 관리
+                    </Link>
+                    <Link
+                      href="/admin/audit"
+                      className="px-3 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-md"
+                    >
+                      감사 로그
+                    </Link>
+                  </>
                 )}
               </nav>
             )}
