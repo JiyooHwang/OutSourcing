@@ -7,24 +7,35 @@ function App() {
   const [data, setData] = useState(() => loadData());
   const [tab, setTab] = useState("dashboard");
   const [selectedPaymentId, setSelectedPaymentId] = useState(null);
+  const [selectedProjectId, setSelectedProjectId] = useState(null);
 
   useEffect(() => {
     saveData(data);
   }, [data]);
 
-  // 탭 이동 시 상세 선택 해제
   function changeTab(next) {
     setSelectedPaymentId(null);
     setTab(next);
   }
 
-  // 외주비 목록에서 프로젝트 클릭 → 상세 페이지
-  function selectPayment(id) {
-    setSelectedPaymentId(id);
-    setTab("payments");
+  // 외주비 목록의 프로젝트명 클릭 → 프로젝트 페이지로 이동
+  function goToProject(projectId) {
+    setSelectedProjectId(projectId);
+    setSelectedPaymentId(null);
+    setTab("projects");
   }
 
-  // 상세 페이지 → 목록으로 복귀
+  // (구) 외주비 상세 페이지로 가는 fallback. 현재는 비활성화 — 프로젝트 페이지로 이동.
+  function selectPayment(id) {
+    const payment = data.payments.find((p) => p.id === id);
+    if (payment && payment.projectId) {
+      goToProject(payment.projectId);
+    } else {
+      setSelectedPaymentId(id);
+      setTab("payments");
+    }
+  }
+
   function backToList() {
     setSelectedPaymentId(null);
   }
@@ -63,6 +74,9 @@ function App() {
             <NavButton active={tab === "payments"} onClick={() => changeTab("payments")}>
               외주비 관리
             </NavButton>
+            <NavButton active={tab === "projects"} onClick={() => changeTab("projects")}>
+              프로젝트
+            </NavButton>
           </nav>
           <DataMenu data={data} setData={setData} />
         </div>
@@ -88,6 +102,14 @@ function App() {
                 setData={setData}
                 onSelectPayment={selectPayment}
               />
+        )}
+        {tab === "projects" && (
+          <ProjectsView
+            data={data}
+            setData={setData}
+            selectedProjectId={selectedProjectId}
+            setSelectedProjectId={setSelectedProjectId}
+          />
         )}
       </main>
 
