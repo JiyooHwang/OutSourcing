@@ -4,7 +4,11 @@
 
 const EMPTY_PAYMENT = {
   vendorId: "",
-  projectName: "",
+  projectId: "",
+  projectName: "", // legacy/표시용. 저장 시 projectId 우선
+  manager: "",
+  role: "",
+  category: "",
   description: "",
   totalAmount: "",
   currency: "KRW",
@@ -12,7 +16,7 @@ const EMPTY_PAYMENT = {
   installments: [makeInstallment("FINAL")],
 };
 
-function PaymentsView({ data, setData, onSelectPayment }) {
+function PaymentsView({ data, setData, onSelectPayment, onSelectProject }) {
   const [statusFilter, setStatusFilter] = useState("");
   const [vendorFilter, setVendorFilter] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -23,6 +27,12 @@ function PaymentsView({ data, setData, onSelectPayment }) {
     for (const v of data.vendors) map[v.id] = v;
     return map;
   }, [data.vendors]);
+
+  const projectById = useMemo(() => {
+    const map = {};
+    for (const p of data.projects || []) map[p.id] = p;
+    return map;
+  }, [data.projects]);
 
   const filtered = useMemo(() => {
     return data.payments
@@ -55,6 +65,10 @@ function PaymentsView({ data, setData, onSelectPayment }) {
   function openCreate() {
     if (data.vendors.length === 0) {
       alert("먼저 외주처를 등록해주세요.");
+      return;
+    }
+    if ((data.projects || []).length === 0) {
+      alert("먼저 '프로젝트' 탭에서 프로젝트를 추가해주세요.");
       return;
     }
     setEditing(null);
@@ -117,15 +131,17 @@ function PaymentsView({ data, setData, onSelectPayment }) {
 
   function exportCsv() {
     const headers = [
-      "외주처","프로젝트","총액","통화","회차","회차금액","상태",
-      "지급기한","지급일","설명","메모","등록일",
+      "프로젝트","외주처","담당자","역할","분류","총액","통화",
+      "회차","회차금액","상태","지급기한","지급일","설명","메모","등록일",
     ];
     const rows = [];
     for (const p of filtered) {
+      const projectName = projectById[p.projectId]?.name || p.projectName || "";
       const vendorName = vendorById[p.vendorId]?.name || "(삭제됨)";
       for (const inst of p.installments) {
         rows.push([
-          vendorName, p.projectName, p.totalAmount, p.currency,
+          projectName, vendorName, p.manager, p.role, p.category,
+          p.totalAmount, p.currency,
           INSTALLMENT_LABEL[inst.type], inst.amount, STATUS_LABEL[inst.status],
           inst.dueDate, inst.paidDate, p.description, p.notes,
           p.createdAt ? p.createdAt.slice(0, 10) : "",
@@ -204,13 +220,18 @@ function PaymentsView({ data, setData, onSelectPayment }) {
                     <Td wide>
                       <button
                         type="button"
-                        onClick={() => onSelectPayment && onSelectPayment(p.id)}
+                        onClick={() => {
+                          if (p.projectId && onSelectProject) onSelectProject(p.projectId);
+                          else if (onSelectPayment) onSelectPayment(p.id);
+                        }}
                         className="text-slate-900 hover:text-slate-600 hover:underline underline-offset-2 text-left font-medium"
                       >
-                        {p.projectName}
+                        {projectById[p.projectId]?.name || p.projectName || "(프로젝트 없음)"}
                       </button>
-                      {p.description && (
-                        <div className="text-xs text-slate-500 mt-1">{p.description}</div>
+                      {p.role && (
+                        <div className="text-xs text-slate-500 mt-1">
+                          {p.role}{p.category ? ` · ${p.category}` : ""}
+                        </div>
                       )}
                     </Td>
                     <Td wide align="right">{formatCurrency(p.totalAmount, p.currency)}</Td>
@@ -259,7 +280,14 @@ function PaymentsView({ data, setData, onSelectPayment }) {
       {showForm && (
         <PaymentForm
           vendors={data.vendors}
-          initial={editing || { ...EMPTY_PAYMENT, vendorId: data.vendors[0]?.id || "" }}
+          projects={data.projects || []}
+          initial={
+            editing || {
+              ...EMPTY_PAYMENT,
+              vendorId: data.vendors[0]?.id || "",
+              projectId: data.projects?.[0]?.id || "",
+            }
+          }
           isEdit={!!editing}
           onCancel={() => { setShowForm(false); setEditing(null); }}
           onSave={savePayment}
@@ -279,7 +307,7 @@ function nextDue(p) {
   return "9999";
 }
 
-function PaymentForm({ vendors, initial, isEdit, onCancel, onSave }) {
+function PaymentForm({ vendors, projects, initial, isEdit, onCancel, onSave }) {
   const [form, setForm] = useState(() => ({ ...EMPTY_PAYMENT, ...initial }));
 
   const installmentSum = useMemo(
@@ -353,14 +381,16 @@ function PaymentForm({ vendors, initial, isEdit, onCancel, onSave }) {
   function submit(e) {
     e.preventDefault();
     if (!form.vendorId) { alert("외주처를 선택해주세요."); return; }
-    if (!form.projectName.trim()) { alert("프로젝트명은 필수입니다."); return; }
+    if (!form.projectId) { alert("프로젝트를 선택해주세요."); return; }
     if (form.installments.length === 0) { alert("최소 1회차 이상 등록해주세요."); return; }
     if (Math.abs(sumDiff) > 0.01) {
       const msg = `회차 합계(${formatCurrency(installmentSum, form.currency)})가 총액(${formatCurrency(total, form.currency)})과 다릅니다. 그대로 저장할까요?`;
       if (!confirm(msg)) return;
     }
+    const proj = (projects || []).find((p) => p.id === form.projectId);
     onSave({
       ...form,
+      projectName: proj ? proj.name : form.projectName,
       totalAmount: total,
       installments: form.installments.map((i) => ({
         ...i,
@@ -374,6 +404,14 @@ function PaymentForm({ vendors, initial, isEdit, onCancel, onSave }) {
       <form onSubmit={submit} className="space-y-5">
         {/* 기본 정보 */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Field label="프로젝트 *">
+            <Select required value={form.projectId} onChange={(e) => update("projectId", e.target.value)}>
+              <option value="">선택</option>
+              {(projects || []).map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </Select>
+          </Field>
           <Field label="외주처 *">
             <Select required value={form.vendorId} onChange={(e) => update("vendorId", e.target.value)}>
               <option value="">선택</option>
@@ -382,8 +420,26 @@ function PaymentForm({ vendors, initial, isEdit, onCancel, onSave }) {
               ))}
             </Select>
           </Field>
-          <Field label="프로젝트명 *">
-            <Input required value={form.projectName} onChange={(e) => update("projectName", e.target.value)} />
+          <Field label="담당자">
+            <Input
+              placeholder="예: 황지유"
+              value={form.manager}
+              onChange={(e) => update("manager", e.target.value)}
+            />
+          </Field>
+          <Field label="역할">
+            <Input
+              placeholder="예: Texture&Shading, Rigging"
+              value={form.role}
+              onChange={(e) => update("role", e.target.value)}
+            />
+          </Field>
+          <Field label="분류">
+            <Input
+              placeholder="예: 룩댑, 리깅, FX"
+              value={form.category}
+              onChange={(e) => update("category", e.target.value)}
+            />
           </Field>
           <Field label="외주비 총액 *">
             <Input

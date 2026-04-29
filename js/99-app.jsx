@@ -101,6 +101,7 @@ function App() {
                 data={data}
                 setData={setData}
                 onSelectPayment={selectPayment}
+                onSelectProject={goToProject}
               />
         )}
         {tab === "projects" && (
