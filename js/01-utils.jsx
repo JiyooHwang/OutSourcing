@@ -44,50 +44,89 @@ function makeInstallment(type, amount = 0) {
   return { type, amount, status: "PENDING", dueDate: "", paidDate: "", note: "" };
 }
 
+const EMPTY_PROJECT = {
+  name: "",
+  manager: "",
+  description: "",
+  notes: "",
+};
+
 // -------------------------------------------------------------
 // localStorage 저장/복원 + 구버전 마이그레이션
 // -------------------------------------------------------------
 function migratePayment(p) {
-  if (Array.isArray(p.installments)) return p;
-  // v1 (단일 amount) → v2 (잔금 1건) 변환
-  return {
-    id: p.id,
-    vendorId: p.vendorId,
-    projectName: p.projectName,
-    description: p.description || "",
-    currency: p.currency || "KRW",
-    notes: p.notes || "",
-    createdAt: p.createdAt || new Date().toISOString(),
-    totalAmount: Number(p.amount) || 0,
-    installments: [
-      {
-        type: "FINAL",
-        amount: Number(p.amount) || 0,
-        status: p.status || "PENDING",
-        dueDate: p.dueDate || "",
-        paidDate: p.paidDate || "",
-        note: "",
-      },
-    ],
-  };
+  // v1 (단일 amount) → v2 (installments 추가)
+  let next = p;
+  if (!Array.isArray(next.installments)) {
+    next = {
+      id: p.id,
+      vendorId: p.vendorId,
+      projectName: p.projectName,
+      description: p.description || "",
+      currency: p.currency || "KRW",
+      notes: p.notes || "",
+      createdAt: p.createdAt || new Date().toISOString(),
+      totalAmount: Number(p.amount) || 0,
+      installments: [
+        {
+          type: "FINAL",
+          amount: Number(p.amount) || 0,
+          status: p.status || "PENDING",
+          dueDate: p.dueDate || "",
+          paidDate: p.paidDate || "",
+          note: "",
+        },
+      ],
+    };
+  }
+  // v2 → v3 (projectId / manager / role / category 추가)
+  if (next.projectId === undefined) next = { ...next, projectId: "" };
+  if (next.manager === undefined)   next = { ...next, manager: "" };
+  if (next.role === undefined)      next = { ...next, role: "" };
+  if (next.category === undefined)  next = { ...next, category: "" };
+  return next;
+}
+
+// 기존 payments의 projectName으로부터 Project 자동 생성, projectId 연결
+function ensureProjectsFromPayments(projects, payments) {
+  const projectsByName = new Map(projects.map((p) => [p.name, p]));
+  const updatedProjects = [...projects];
+  const updatedPayments = payments.map((pay) => {
+    if (pay.projectId) return pay;
+    const name = (pay.projectName || "").trim();
+    if (!name) return pay;
+    let project = projectsByName.get(name);
+    if (!project) {
+      project = {
+        id: uid(),
+        name,
+        manager: "",
+        description: "",
+        notes: "",
+        createdAt: new Date().toISOString(),
+      };
+      projectsByName.set(name, project);
+      updatedProjects.push(project);
+    }
+    return { ...pay, projectId: project.id };
+  });
+  return { projects: updatedProjects, payments: updatedPayments };
 }
 
 function loadData() {
   try {
     let raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      // 구버전 키에서 한 번 옮겨오기
-      raw = localStorage.getItem(LEGACY_STORAGE_KEY);
-    }
-    if (!raw) return { vendors: [], payments: [] };
+    if (!raw) raw = localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (!raw) return { vendors: [], payments: [], projects: [] };
     const parsed = JSON.parse(raw);
-    return {
-      vendors: parsed.vendors ?? [],
-      payments: (parsed.payments ?? []).map(migratePayment),
-    };
+    const vendors = parsed.vendors ?? [];
+    const payments = (parsed.payments ?? []).map(migratePayment);
+    const projects = parsed.projects ?? [];
+    const merged = ensureProjectsFromPayments(projects, payments);
+    return { vendors, payments: merged.payments, projects: merged.projects };
   } catch (e) {
     console.error("데이터 로드 실패:", e);
-    return { vendors: [], payments: [] };
+    return { vendors: [], payments: [], projects: [] };
   }
 }
 

@@ -30,9 +30,12 @@ function DataMenu({ data, setData }) {
         return;
       }
       if (!confirm("현재 데이터를 백업으로 덮어쓰시겠습니까?")) return;
+      const payments = (parsed.payments || []).map(migratePayment);
+      const merged = ensureProjectsFromPayments(parsed.projects || [], payments);
       setData({
-        vendors: parsed.vendors,
-        payments: parsed.payments.map(migratePayment),
+        vendors: parsed.vendors || [],
+        payments: merged.payments,
+        projects: merged.projects,
       });
       setOpen(false);
     } catch (err) {
@@ -44,7 +47,7 @@ function DataMenu({ data, setData }) {
 
   function resetAll() {
     if (!confirm("정말 모든 데이터를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.")) return;
-    setData({ vendors: [], payments: [] });
+    setData({ vendors: [], payments: [], projects: [] });
     setOpen(false);
   }
 
