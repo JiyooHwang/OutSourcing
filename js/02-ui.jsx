@@ -14,11 +14,12 @@ function Table({ children }) {
   return <table className="w-full text-sm">{children}</table>;
 }
 
-function Th({ children, align }) {
+function Th({ children, align, wide }) {
   return (
     <th
       className={
-        "px-3 py-2 font-medium text-slate-600 border-b border-slate-200 bg-slate-50 " +
+        (wide ? "px-4 py-3 " : "px-3 py-2 ") +
+        "font-medium text-slate-600 border-b border-slate-200 bg-slate-50 " +
         (align === "right" ? "text-right" : "text-left")
       }
     >
@@ -27,13 +28,14 @@ function Th({ children, align }) {
   );
 }
 
-function Td({ children, align, bold }) {
+function Td({ children, align, bold, wide }) {
   return (
     <td
       className={
-        "px-3 py-2 border-b border-slate-100 align-middle " +
-        (align === "right" ? "text-right" : "") +
-        (bold ? " font-medium" : "")
+        (wide ? "px-4 py-4 align-top " : "px-3 py-2 align-middle ") +
+        "border-b border-slate-100 " +
+        (align === "right" ? "text-right " : "") +
+        (bold ? "font-medium " : "")
       }
     >
       {children}

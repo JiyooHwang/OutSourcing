@@ -175,18 +175,18 @@ function PaymentsView({ data, setData, onSelectPayment }) {
         <Table>
           <thead>
             <tr>
-              <Th>외주처</Th>
-              <Th>프로젝트</Th>
-              <Th align="right">총액</Th>
-              <Th>지급 진행</Th>
-              <Th>다음 지급예정</Th>
-              <Th align="right">관리</Th>
+              <Th wide>외주처</Th>
+              <Th wide>프로젝트</Th>
+              <Th wide align="right">총액</Th>
+              <Th wide>지급 진행</Th>
+              <Th wide>다음 지급예정</Th>
+              <Th wide align="right">관리</Th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={6} className="text-center text-slate-500 py-6">
+                <td colSpan={6} className="text-center text-slate-500 py-10">
                   {data.payments.length === 0
                     ? "등록된 외주비가 없습니다. '+ 외주비 추가' 버튼을 눌러주세요."
                     : "필터에 해당하는 외주비가 없습니다."}
@@ -199,9 +199,9 @@ function PaymentsView({ data, setData, onSelectPayment }) {
                 );
                 const paidCount = p.installments.filter((i) => i.status === "PAID").length;
                 return (
-                  <tr key={p.id} className="hover:bg-slate-50 align-top">
-                    <Td bold>{vendorById[p.vendorId]?.name || "(삭제됨)"}</Td>
-                    <Td>
+                  <tr key={p.id} className="hover:bg-slate-50">
+                    <Td wide bold>{vendorById[p.vendorId]?.name || "(삭제됨)"}</Td>
+                    <Td wide>
                       <button
                         type="button"
                         onClick={() => onSelectPayment && onSelectPayment(p.id)}
@@ -210,12 +210,12 @@ function PaymentsView({ data, setData, onSelectPayment }) {
                         {p.projectName}
                       </button>
                       {p.description && (
-                        <div className="text-xs text-slate-500 mt-0.5">{p.description}</div>
+                        <div className="text-xs text-slate-500 mt-1">{p.description}</div>
                       )}
                     </Td>
-                    <Td align="right">{formatCurrency(p.totalAmount, p.currency)}</Td>
-                    <Td>
-                      <div className="text-xs text-slate-500 mb-1">
+                    <Td wide align="right">{formatCurrency(p.totalAmount, p.currency)}</Td>
+                    <Td wide>
+                      <div className="text-xs text-slate-500 mb-2">
                         {paidCount}/{p.installments.length} 회차 지급
                       </div>
                       <InstallmentMiniTable
@@ -223,11 +223,11 @@ function PaymentsView({ data, setData, onSelectPayment }) {
                         currency={p.currency}
                       />
                     </Td>
-                    <Td>
+                    <Td wide>
                       {next ? (
                         <div>
                           <div>{INSTALLMENT_LABEL[next.type]}</div>
-                          <div className="text-xs text-slate-500">
+                          <div className="text-xs text-slate-500 mt-1">
                             {next.dueDate ? formatDate(next.dueDate) : "기한 미정"}
                           </div>
                         </div>
@@ -235,18 +235,18 @@ function PaymentsView({ data, setData, onSelectPayment }) {
                         <span className="text-xs text-slate-400">완료</span>
                       )}
                     </Td>
-                    <Td align="right">
-                      {next && (
-                        <Btn variant="secondary" small onClick={() => markNextPaid(p)}>
-                          다음 회차 지급
-                        </Btn>
-                      )}
-                      <span className="ml-2">
-                        <Btn variant="secondary" small onClick={() => openEdit(p)}>편집</Btn>
-                      </span>
-                      <span className="ml-2">
-                        <Btn variant="danger" small onClick={() => deletePayment(p)}>삭제</Btn>
-                      </span>
+                    <Td wide align="right">
+                      <div className="flex flex-col gap-1.5 items-end">
+                        {next && (
+                          <Btn variant="secondary" small onClick={() => markNextPaid(p)}>
+                            다음 회차 지급
+                          </Btn>
+                        )}
+                        <div className="flex gap-1.5">
+                          <Btn variant="secondary" small onClick={() => openEdit(p)}>편집</Btn>
+                          <Btn variant="danger" small onClick={() => deletePayment(p)}>삭제</Btn>
+                        </div>
+                      </div>
                     </Td>
                   </tr>
                 );
@@ -526,20 +526,20 @@ function InstallmentMiniTable({ installments, currency }) {
     <table className="text-xs border border-slate-200 rounded overflow-hidden">
       <thead>
         <tr className="bg-slate-100 text-slate-600">
-          <th className="px-2 py-1 text-left font-medium">회차</th>
-          <th className="px-2 py-1 text-right font-medium">금액</th>
-          <th className="px-2 py-1 text-left font-medium">상태</th>
-          <th className="px-2 py-1 text-left font-medium">기한</th>
+          <th className="px-3 py-1.5 text-left font-medium">회차</th>
+          <th className="px-3 py-1.5 text-right font-medium">금액</th>
+          <th className="px-3 py-1.5 text-left font-medium">상태</th>
+          <th className="px-3 py-1.5 text-left font-medium">기한</th>
         </tr>
       </thead>
       <tbody>
         {installments.map((inst, i) => (
           <tr key={i} className="border-t border-slate-100">
-            <td className="px-2 py-1">{INSTALLMENT_LABEL[inst.type]}</td>
-            <td className="px-2 py-1 text-right whitespace-nowrap">
+            <td className="px-3 py-1.5 whitespace-nowrap">{INSTALLMENT_LABEL[inst.type]}</td>
+            <td className="px-3 py-1.5 text-right whitespace-nowrap">
               {formatCurrency(inst.amount, currency)}
             </td>
-            <td className="px-2 py-1">
+            <td className="px-3 py-1.5">
               <span
                 className={
                   "inline-block rounded px-1.5 py-0.5 font-medium " +
@@ -549,7 +549,7 @@ function InstallmentMiniTable({ installments, currency }) {
                 {STATUS_LABEL[inst.status]}
               </span>
             </td>
-            <td className="px-2 py-1 text-slate-500">
+            <td className="px-3 py-1.5 text-slate-500 whitespace-nowrap">
               {inst.dueDate ? formatDate(inst.dueDate) : "-"}
             </td>
           </tr>
