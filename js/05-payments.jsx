@@ -12,7 +12,7 @@ const EMPTY_PAYMENT = {
   installments: [makeInstallment("FINAL")],
 };
 
-function PaymentsView({ data, setData }) {
+function PaymentsView({ data, setData, onSelectPayment }) {
   const [statusFilter, setStatusFilter] = useState("");
   const [vendorFilter, setVendorFilter] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -202,7 +202,13 @@ function PaymentsView({ data, setData }) {
                   <tr key={p.id} className="hover:bg-slate-50 align-top">
                     <Td bold>{vendorById[p.vendorId]?.name || "(삭제됨)"}</Td>
                     <Td>
-                      <div>{p.projectName}</div>
+                      <button
+                        type="button"
+                        onClick={() => onSelectPayment && onSelectPayment(p.id)}
+                        className="text-slate-900 hover:text-slate-600 hover:underline underline-offset-2 text-left font-medium"
+                      >
+                        {p.projectName}
+                      </button>
                       {p.description && (
                         <div className="text-xs text-slate-500 mt-0.5">{p.description}</div>
                       )}
@@ -212,20 +218,10 @@ function PaymentsView({ data, setData }) {
                       <div className="text-xs text-slate-500 mb-1">
                         {paidCount}/{p.installments.length} 회차 지급
                       </div>
-                      <div className="flex flex-wrap gap-1">
-                        {p.installments.map((inst, i) => (
-                          <span
-                            key={i}
-                            className={
-                              "inline-flex items-center rounded px-1.5 py-0.5 text-xs font-medium " +
-                              STATUS_BADGE[inst.status]
-                            }
-                            title={`${INSTALLMENT_LABEL[inst.type]}: ${formatCurrency(inst.amount, p.currency)} · ${STATUS_LABEL[inst.status]}${inst.dueDate ? ` · 기한 ${formatDate(inst.dueDate)}` : ""}${inst.paidDate ? ` · 지급 ${formatDate(inst.paidDate)}` : ""}`}
-                          >
-                            {INSTALLMENT_LABEL[inst.type]} {formatCurrency(inst.amount, p.currency)}
-                          </span>
-                        ))}
-                      </div>
+                      <InstallmentMiniTable
+                        installments={p.installments}
+                        currency={p.currency}
+                      />
                     </Td>
                     <Td>
                       {next ? (
@@ -519,5 +515,46 @@ function PaymentForm({ vendors, initial, isEdit, onCancel, onSave }) {
         </div>
       </form>
     </Modal>
+  );
+}
+
+// -------------------------------------------------------------
+// 회차 미니 테이블 (목록 셀 안에서 사용)
+// -------------------------------------------------------------
+function InstallmentMiniTable({ installments, currency }) {
+  return (
+    <table className="text-xs border border-slate-200 rounded overflow-hidden">
+      <thead>
+        <tr className="bg-slate-100 text-slate-600">
+          <th className="px-2 py-1 text-left font-medium">회차</th>
+          <th className="px-2 py-1 text-right font-medium">금액</th>
+          <th className="px-2 py-1 text-left font-medium">상태</th>
+          <th className="px-2 py-1 text-left font-medium">기한</th>
+        </tr>
+      </thead>
+      <tbody>
+        {installments.map((inst, i) => (
+          <tr key={i} className="border-t border-slate-100">
+            <td className="px-2 py-1">{INSTALLMENT_LABEL[inst.type]}</td>
+            <td className="px-2 py-1 text-right whitespace-nowrap">
+              {formatCurrency(inst.amount, currency)}
+            </td>
+            <td className="px-2 py-1">
+              <span
+                className={
+                  "inline-block rounded px-1.5 py-0.5 font-medium " +
+                  STATUS_BADGE[inst.status]
+                }
+              >
+                {STATUS_LABEL[inst.status]}
+              </span>
+            </td>
+            <td className="px-2 py-1 text-slate-500">
+              {inst.dueDate ? formatDate(inst.dueDate) : "-"}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }

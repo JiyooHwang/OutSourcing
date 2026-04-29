@@ -6,10 +6,28 @@
 function App() {
   const [data, setData] = useState(() => loadData());
   const [tab, setTab] = useState("dashboard");
+  const [selectedPaymentId, setSelectedPaymentId] = useState(null);
 
   useEffect(() => {
     saveData(data);
   }, [data]);
+
+  // 탭 이동 시 상세 선택 해제
+  function changeTab(next) {
+    setSelectedPaymentId(null);
+    setTab(next);
+  }
+
+  // 외주비 목록에서 프로젝트 클릭 → 상세 페이지
+  function selectPayment(id) {
+    setSelectedPaymentId(id);
+    setTab("payments");
+  }
+
+  // 상세 페이지 → 목록으로 복귀
+  function backToList() {
+    setSelectedPaymentId(null);
+  }
 
   const stats = useMemo(() => {
     let pendingAmount = 0, paidAmount = 0;
@@ -36,13 +54,13 @@ function App() {
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
           <h1 className="text-lg font-bold">외주업체 관리</h1>
           <nav className="flex gap-1">
-            <NavButton active={tab === "dashboard"} onClick={() => setTab("dashboard")}>
+            <NavButton active={tab === "dashboard"} onClick={() => changeTab("dashboard")}>
               대시보드
             </NavButton>
-            <NavButton active={tab === "vendors"} onClick={() => setTab("vendors")}>
+            <NavButton active={tab === "vendors"} onClick={() => changeTab("vendors")}>
               외주처 목록
             </NavButton>
-            <NavButton active={tab === "payments"} onClick={() => setTab("payments")}>
+            <NavButton active={tab === "payments"} onClick={() => changeTab("payments")}>
               외주비 관리
             </NavButton>
           </nav>
@@ -51,9 +69,26 @@ function App() {
       </header>
 
       <main className="max-w-6xl mx-auto px-6 py-8">
-        {tab === "dashboard" && <Dashboard stats={stats} onNavigate={setTab} />}
-        {tab === "vendors"   && <VendorsView data={data} setData={setData} />}
-        {tab === "payments"  && <PaymentsView data={data} setData={setData} />}
+        {tab === "dashboard" && (
+          <Dashboard stats={stats} onNavigate={changeTab} />
+        )}
+        {tab === "vendors" && (
+          <VendorsView data={data} setData={setData} />
+        )}
+        {tab === "payments" && (
+          selectedPaymentId
+            ? <PaymentDetailView
+                data={data}
+                setData={setData}
+                paymentId={selectedPaymentId}
+                onBack={backToList}
+              />
+            : <PaymentsView
+                data={data}
+                setData={setData}
+                onSelectPayment={selectPayment}
+              />
+        )}
       </main>
 
       <footer className="max-w-6xl mx-auto px-6 py-6 text-xs text-slate-400">
