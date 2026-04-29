@@ -6,7 +6,6 @@
 function App() {
   const [data, setData] = useState(() => loadData());
   const [tab, setTab] = useState("dashboard");
-  const [selectedPaymentId, setSelectedPaymentId] = useState(null);
   const [selectedProjectId, setSelectedProjectId] = useState(null);
 
   useEffect(() => {
@@ -14,30 +13,13 @@ function App() {
   }, [data]);
 
   function changeTab(next) {
-    setSelectedPaymentId(null);
     setTab(next);
   }
 
   // 외주비 목록의 프로젝트명 클릭 → 프로젝트 페이지로 이동
   function goToProject(projectId) {
     setSelectedProjectId(projectId);
-    setSelectedPaymentId(null);
     setTab("projects");
-  }
-
-  // (구) 외주비 상세 페이지로 가는 fallback. 현재는 비활성화 — 프로젝트 페이지로 이동.
-  function selectPayment(id) {
-    const payment = data.payments.find((p) => p.id === id);
-    if (payment && payment.projectId) {
-      goToProject(payment.projectId);
-    } else {
-      setSelectedPaymentId(id);
-      setTab("payments");
-    }
-  }
-
-  function backToList() {
-    setSelectedPaymentId(null);
   }
 
   const stats = useMemo(() => {
@@ -90,19 +72,11 @@ function App() {
           <VendorsView data={data} setData={setData} />
         )}
         {tab === "payments" && (
-          selectedPaymentId
-            ? <PaymentDetailView
-                data={data}
-                setData={setData}
-                paymentId={selectedPaymentId}
-                onBack={backToList}
-              />
-            : <PaymentsView
-                data={data}
-                setData={setData}
-                onSelectPayment={selectPayment}
-                onSelectProject={goToProject}
-              />
+          <PaymentsView
+            data={data}
+            setData={setData}
+            onSelectProject={goToProject}
+          />
         )}
         {tab === "projects" && (
           <ProjectsView

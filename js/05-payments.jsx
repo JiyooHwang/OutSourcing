@@ -16,7 +16,7 @@ const EMPTY_PAYMENT = {
   installments: [makeInstallment("FINAL")],
 };
 
-function PaymentsView({ data, setData, onSelectPayment, onSelectProject }) {
+function PaymentsView({ data, setData, onSelectProject }) {
   const [statusFilter, setStatusFilter] = useState("");
   const [vendorFilter, setVendorFilter] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -218,16 +218,17 @@ function PaymentsView({ data, setData, onSelectPayment, onSelectProject }) {
                   <tr key={p.id} className="hover:bg-slate-50">
                     <Td wide bold>{vendorById[p.vendorId]?.name || "(삭제됨)"}</Td>
                     <Td wide>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (p.projectId && onSelectProject) onSelectProject(p.projectId);
-                          else if (onSelectPayment) onSelectPayment(p.id);
-                        }}
-                        className="text-slate-900 hover:text-slate-600 hover:underline underline-offset-2 text-left font-medium"
-                      >
-                        {projectById[p.projectId]?.name || p.projectName || "(프로젝트 없음)"}
-                      </button>
+                      {p.projectId ? (
+                        <button
+                          type="button"
+                          onClick={() => onSelectProject && onSelectProject(p.projectId)}
+                          className="text-slate-900 hover:text-slate-600 hover:underline underline-offset-2 text-left font-medium"
+                        >
+                          {projectById[p.projectId]?.name || p.projectName || "(프로젝트 없음)"}
+                        </button>
+                      ) : (
+                        <span className="text-slate-500">{p.projectName || "(프로젝트 없음)"}</span>
+                      )}
                       {p.role && (
                         <div className="text-xs text-slate-500 mt-1">
                           {p.role}{p.category ? ` · ${p.category}` : ""}
