@@ -194,7 +194,7 @@ function PaymentsView({ data, setData, onSelectProject }) {
               <Th wide>외주처</Th>
               <Th wide>프로젝트</Th>
               <Th wide align="right">총액</Th>
-              <Th wide>지급 진행</Th>
+              <Th wide align="right">지급 일정</Th>
               <Th wide>다음 지급예정</Th>
               <Th wide align="right">관리</Th>
             </tr>
@@ -237,13 +237,15 @@ function PaymentsView({ data, setData, onSelectProject }) {
                     </Td>
                     <Td wide align="right">{formatCurrency(p.totalAmount, p.currency)}</Td>
                     <Td wide>
-                      <div className="text-xs text-slate-500 mb-2">
-                        {paidCount}/{p.installments.length} 회차 지급
+                      <div className="flex flex-col items-end">
+                        <div className="text-xs text-slate-500 mb-2">
+                          {paidCount}/{p.installments.length} 회차 지급
+                        </div>
+                        <InstallmentMiniTable
+                          installments={p.installments}
+                          currency={p.currency}
+                        />
                       </div>
-                      <InstallmentMiniTable
-                        installments={p.installments}
-                        currency={p.currency}
-                      />
                     </Td>
                     <Td wide>
                       {next ? (
