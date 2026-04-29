@@ -17,7 +17,10 @@ export async function GET(req: NextRequest) {
         | "CANCELED"
         | undefined,
     },
-    include: { vendor: { select: { id: true, name: true } } },
+    include: {
+      vendor: { select: { id: true, name: true } },
+      _count: { select: { attachments: true } },
+    },
     orderBy: [{ dueDate: "asc" }, { createdAt: "desc" }],
   });
 

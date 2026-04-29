@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { formatCurrency, formatDate, toDateInput } from "@/lib/format";
+import AttachmentsModal from "@/components/AttachmentsModal";
 
 type Status = "PENDING" | "PAID" | "OVERDUE" | "CANCELED";
 
@@ -18,6 +19,7 @@ type Payment = {
   dueDate: string | null;
   paidDate: string | null;
   notes: string | null;
+  _count?: { attachments: number };
 };
 
 type Vendor = { id: string; name: string };
@@ -62,7 +64,13 @@ const STATUS_BADGE: Record<Status, string> = {
   CANCELED: "badge-canceled",
 };
 
-export default function PaymentsClient({ isAdmin }: { isAdmin: boolean }) {
+export default function PaymentsClient({
+  isAdmin,
+  currentUserId,
+}: {
+  isAdmin: boolean;
+  currentUserId: string;
+}) {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [loading, setLoading] = useState(true);
@@ -72,6 +80,7 @@ export default function PaymentsClient({ isAdmin }: { isAdmin: boolean }) {
   const [editing, setEditing] = useState<Payment | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [error, setError] = useState<string | null>(null);
+  const [attachmentsFor, setAttachmentsFor] = useState<Payment | null>(null);
 
   async function load() {
     setLoading(true);
@@ -291,19 +300,20 @@ export default function PaymentsClient({ isAdmin }: { isAdmin: boolean }) {
               <th>청구일</th>
               <th>지급기한</th>
               <th>지급일</th>
+              <th>첨부</th>
               <th className="text-right">관리</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={8} className="text-center text-slate-500 py-6">
+                <td colSpan={9} className="text-center text-slate-500 py-6">
                   불러오는 중...
                 </td>
               </tr>
             ) : payments.length === 0 ? (
               <tr>
-                <td colSpan={8} className="text-center text-slate-500 py-6">
+                <td colSpan={9} className="text-center text-slate-500 py-6">
                   등록된 외주비 항목이 없습니다.
                 </td>
               </tr>
@@ -323,6 +333,15 @@ export default function PaymentsClient({ isAdmin }: { isAdmin: boolean }) {
                   <td>{formatDate(p.invoiceDate)}</td>
                   <td>{formatDate(p.dueDate)}</td>
                   <td>{formatDate(p.paidDate)}</td>
+                  <td>
+                    <button
+                      type="button"
+                      className="text-sm text-slate-700 hover:text-slate-900 underline-offset-2 hover:underline"
+                      onClick={() => setAttachmentsFor(p)}
+                    >
+                      📎 {p._count?.attachments ?? 0}
+                    </button>
+                  </td>
                   <td className="text-right whitespace-nowrap">
                     {p.status !== "PAID" && (
                       <button
@@ -511,6 +530,17 @@ export default function PaymentsClient({ isAdmin }: { isAdmin: boolean }) {
             </form>
           </div>
         </div>
+      )}
+
+      {attachmentsFor && (
+        <AttachmentsModal
+          paymentId={attachmentsFor.id}
+          paymentLabel={`${attachmentsFor.vendor.name} · ${attachmentsFor.projectName}`}
+          currentUserId={currentUserId}
+          isAdmin={isAdmin}
+          onClose={() => setAttachmentsFor(null)}
+          onChanged={load}
+        />
       )}
     </div>
   );

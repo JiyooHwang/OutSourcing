@@ -13,16 +13,17 @@ enum Role {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String       @id @default(cuid())
   name          String?
-  email         String    @unique
+  email         String       @unique
   emailVerified DateTime?
   image         String?
-  role          Role      @default(MEMBER)
+  role          Role         @default(MEMBER)
   accounts      Account[]
   sessions      Session[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  attachments   Attachment[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 }
 
 model Account {
@@ -99,10 +100,26 @@ model Payment {
   dueDate     DateTime?
   paidDate    DateTime?
   notes       String?
+  attachments Attachment[]
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
   @@index([vendorId])
   @@index([status])
   @@index([dueDate])
+}
+
+model Attachment {
+  id           String   @id @default(cuid())
+  payment      Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  paymentId    String
+  fileName     String
+  fileSize     Int
+  mimeType     String
+  storageKey   String   @unique
+  uploadedBy   User?    @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  uploadedById String?
+  createdAt    DateTime @default(now())
+
+  @@index([paymentId])
 }
