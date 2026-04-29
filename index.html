@@ -20,6 +20,13 @@
   </head>
   <body>
     <div id="root"></div>
-    <script type="text/babel" data-presets="react" src="./outsourcing-tool.jsx"></script>
+    <!-- 로딩 순서가 곧 의존 순서입니다. 01부터 차례로 읽고, 99(App+마운트)가 마지막. -->
+    <script type="text/babel" data-presets="react" src="./js/01-utils.jsx"></script>
+    <script type="text/babel" data-presets="react" src="./js/02-ui.jsx"></script>
+    <script type="text/babel" data-presets="react" src="./js/03-dashboard.jsx"></script>
+    <script type="text/babel" data-presets="react" src="./js/04-vendors.jsx"></script>
+    <script type="text/babel" data-presets="react" src="./js/05-payments.jsx"></script>
+    <script type="text/babel" data-presets="react" src="./js/06-data-menu.jsx"></script>
+    <script type="text/babel" data-presets="react" src="./js/99-app.jsx"></script>
   </body>
 </html>
