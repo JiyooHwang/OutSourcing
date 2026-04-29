@@ -199,18 +199,32 @@ export default function PaymentsClient({ isAdmin }: { isAdmin: boolean }) {
             프로젝트별 외주비 지급 상태를 추적합니다.
           </p>
         </div>
-        <button
-          className="btn-primary"
-          onClick={openCreate}
-          disabled={vendors.length === 0}
-          title={
-            vendors.length === 0
-              ? "먼저 외주처를 등록해주세요."
-              : ""
-          }
-        >
-          + 외주비 추가
-        </button>
+        <div className="flex gap-2">
+          <a
+            className="btn-secondary"
+            href={`/api/payments/export${
+              statusFilter || vendorFilter
+                ? `?${new URLSearchParams({
+                    ...(statusFilter ? { status: statusFilter } : {}),
+                    ...(vendorFilter ? { vendorId: vendorFilter } : {}),
+                  }).toString()}`
+                : ""
+            }`}
+            download
+          >
+            CSV 내보내기
+          </a>
+          <button
+            className="btn-primary"
+            onClick={openCreate}
+            disabled={vendors.length === 0}
+            title={
+              vendors.length === 0 ? "먼저 외주처를 등록해주세요." : ""
+            }
+          >
+            + 외주비 추가
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

@@ -121,9 +121,18 @@ export default function VendorsClient({ isAdmin }: { isAdmin: boolean }) {
           <h1 className="text-2xl font-bold">외주처 목록</h1>
           <p className="text-slate-600 mt-1">외주 협력업체 정보를 관리합니다.</p>
         </div>
-        <button className="btn-primary" onClick={openCreate}>
-          + 외주처 추가
-        </button>
+        <div className="flex gap-2">
+          <a
+            className="btn-secondary"
+            href="/api/vendors/export"
+            download
+          >
+            CSV 내보내기
+          </a>
+          <button className="btn-primary" onClick={openCreate}>
+            + 외주처 추가
+          </button>
+        </div>
       </div>
 
       <div className="flex gap-2">
