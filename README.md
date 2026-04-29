@@ -2,7 +2,38 @@
 
 외주처(협력업체) 정보와 외주비 지급 현황을 관리하는 사내 툴.
 
-## 기술 스택
+## 두 가지 사용 방식
+
+이 저장소는 두 가지 모드로 사용할 수 있습니다. 용도에 맞게 선택하세요.
+
+### A. 단일 HTML 모드 (즉시 사용, 본인용)
+
+`index.html` 을 브라우저에서 열기만 하면 됩니다. 빌드 / DB / 로그인 불필요.
+데이터는 브라우저 `localStorage`에 저장되며, JSON 백업/복원 가능.
+
+```bash
+# 저장소 clone 후 그냥 열기
+open index.html       # macOS
+start index.html      # Windows
+xdg-open index.html   # Linux
+```
+
+또는 GitHub Pages에서 호스팅하려면 Settings → Pages → Branch: main / Folder: `/ (root)` 로 설정.
+
+> **파일**: `index.html`, `outsourcing-tool.jsx`
+> 수정하면 페이지 새로고침으로 즉시 반영. 팀원 간 데이터 공유는 안 됨.
+
+### B. Next.js 서버 모드 (팀 공유, 운영용)
+
+PostgreSQL + Google OAuth + 권한·감사 로그·첨부 등 풀 기능. Vercel 배포 권장.
+설정은 [DEPLOY.md](./DEPLOY.md) 참고.
+
+> **폴더**: `src/`, `prisma/`, `package.json` 등
+> Google OAuth 발급, DB 프로비저닝 등 초기 셋업이 필요하지만 팀 공동 사용 가능.
+
+---
+
+## 기술 스택 (B 모드)
 
 - **Next.js 15** (App Router) + TypeScript
 - **Prisma** ORM + **PostgreSQL**
