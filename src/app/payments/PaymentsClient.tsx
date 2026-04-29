@@ -62,7 +62,7 @@ const STATUS_BADGE: Record<Status, string> = {
   CANCELED: "badge-canceled",
 };
 
-export default function PaymentsClient() {
+export default function PaymentsClient({ isAdmin }: { isAdmin: boolean }) {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [loading, setLoading] = useState(true);
@@ -324,12 +324,14 @@ export default function PaymentsClient() {
                     >
                       편집
                     </button>
-                    <button
-                      className="btn-danger"
-                      onClick={() => onDelete(p)}
-                    >
-                      삭제
-                    </button>
+                    {isAdmin && (
+                      <button
+                        className="btn-danger"
+                        onClick={() => onDelete(p)}
+                      >
+                        삭제
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))

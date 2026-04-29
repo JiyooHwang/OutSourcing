@@ -39,6 +39,14 @@ export default async function RootLayout({
                 >
                   외주비 관리
                 </Link>
+                {user.role === "ADMIN" && (
+                  <Link
+                    href="/admin/users"
+                    className="px-3 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-md"
+                  >
+                    사용자 관리
+                  </Link>
+                )}
               </nav>
             )}
 
@@ -56,6 +64,15 @@ export default async function RootLayout({
                     )}
                     <span className="text-slate-700">
                       {user.name || user.email}
+                    </span>
+                    <span
+                      className={
+                        user.role === "ADMIN"
+                          ? "badge bg-slate-900 text-white"
+                          : "badge bg-slate-200 text-slate-700"
+                      }
+                    >
+                      {user.role}
                     </span>
                   </div>
                   <form

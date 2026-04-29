@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { vendorSchema } from "@/lib/validators";
+import { handleApiError, requireAdmin } from "@/lib/auth-utils";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -29,7 +30,12 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 }
 
 export async function DELETE(_req: NextRequest, { params }: Params) {
-  const { id } = await params;
-  await prisma.vendor.delete({ where: { id } });
-  return NextResponse.json({ ok: true });
+  try {
+    await requireAdmin();
+    const { id } = await params;
+    await prisma.vendor.delete({ where: { id } });
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    return handleApiError(e);
+  }
 }

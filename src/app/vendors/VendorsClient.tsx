@@ -30,7 +30,7 @@ const empty: Omit<Vendor, "id" | "_count"> = {
   notes: "",
 };
 
-export default function VendorsClient() {
+export default function VendorsClient({ isAdmin }: { isAdmin: boolean }) {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
@@ -187,9 +187,14 @@ export default function VendorsClient() {
                     >
                       편집
                     </button>
-                    <button className="btn-danger" onClick={() => onDelete(v)}>
-                      삭제
-                    </button>
+                    {isAdmin && (
+                      <button
+                        className="btn-danger"
+                        onClick={() => onDelete(v)}
+                      >
+                        삭제
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))
