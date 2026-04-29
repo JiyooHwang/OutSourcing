@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 type Vendor = {
@@ -59,12 +60,6 @@ export default function VendorsClient({ isAdmin }: { isAdmin: boolean }) {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  function openCreate() {
-    setEditing(null);
-    setForm(empty);
-    setShowForm(true);
-  }
 
   function openEdit(v: Vendor) {
     setEditing(v);
@@ -129,9 +124,9 @@ export default function VendorsClient({ isAdmin }: { isAdmin: boolean }) {
           >
             CSV 내보내기
           </a>
-          <button className="btn-primary" onClick={openCreate}>
+          <Link href="/vendors/new" className="btn-primary">
             + 외주처 추가
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -177,7 +172,13 @@ export default function VendorsClient({ isAdmin }: { isAdmin: boolean }) {
             ) : vendors.length === 0 ? (
               <tr>
                 <td colSpan={7} className="text-center text-slate-500 py-6">
-                  등록된 외주처가 없습니다.
+                  등록된 외주처가 없습니다.{" "}
+                  <Link
+                    href="/vendors/new"
+                    className="underline text-slate-700 hover:text-slate-900"
+                  >
+                    추가하러 가기 →
+                  </Link>
                 </td>
               </tr>
             ) : (
