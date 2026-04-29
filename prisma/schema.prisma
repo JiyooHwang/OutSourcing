@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Vendor {
+  id             String    @id @default(cuid())
+  name           String
+  contactPerson  String?
+  email          String?
+  phone          String?
+  businessNumber String?
+  address        String?
+  category       String?
+  bankName       String?
+  bankAccount    String?
+  notes          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  payments       Payment[]
+
+  @@index([name])
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELED
+}
+
+model Payment {
+  id          String        @id @default(cuid())
+  vendor      Vendor        @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  vendorId    String
+  projectName String
+  description String?
+  amount      Decimal       @db.Decimal(14, 2)
+  currency    String        @default("KRW")
+  status      PaymentStatus @default(PENDING)
+  invoiceDate DateTime?
+  dueDate     DateTime?
+  paidDate    DateTime?
+  notes       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([vendorId])
+  @@index([status])
+  @@index([dueDate])
+}
