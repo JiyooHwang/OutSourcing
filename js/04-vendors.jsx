@@ -19,6 +19,7 @@ function VendorsView({ data, setData }) {
   const [q, setQ] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [showImport, setShowImport] = useState(false);
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
@@ -69,6 +70,47 @@ function VendorsView({ data, setData }) {
     setEditing(null);
   }
 
+  function importVendors(list, overwriteDup) {
+    const now = new Date().toISOString();
+    const existingByName = new Map(
+      data.vendors.map((v) => [v.name.trim().toLowerCase(), v])
+    );
+
+    const updatedExisting = new Map();
+    const toAppend = [];
+
+    for (const incoming of list) {
+      const key = incoming.name.trim().toLowerCase();
+      const existing = existingByName.get(key);
+      if (existing) {
+        if (overwriteDup) {
+          // 빈 값은 기존 값 유지, 채워진 값만 덮어씀
+          const merged = { ...existing };
+          for (const f of Object.keys(incoming)) {
+            if (f === "isDuplicate") continue;
+            if (incoming[f]) merged[f] = incoming[f];
+          }
+          updatedExisting.set(existing.id, merged);
+        }
+      } else {
+        const { isDuplicate, ...clean } = incoming;
+        toAppend.push({ id: uid(), createdAt: now, ...clean });
+      }
+    }
+
+    setData({
+      ...data,
+      vendors: [
+        ...toAppend,
+        ...data.vendors.map((v) => updatedExisting.get(v.id) || v),
+      ],
+    });
+    setShowImport(false);
+    alert(
+      `가져오기 완료: 신규 ${toAppend.length}건, 갱신 ${updatedExisting.size}건`
+    );
+  }
+
   function deleteVendor(v) {
     const count = paymentCountByVendor[v.id] || 0;
     const msg =
@@ -105,6 +147,9 @@ function VendorsView({ data, setData }) {
         </div>
         <div className="flex gap-2">
           <Btn variant="secondary" onClick={exportCsv}>CSV 내보내기</Btn>
+          <Btn variant="secondary" onClick={() => setShowImport(true)}>
+            엑셀 업로드
+          </Btn>
           <Btn onClick={openCreate}>+ 외주처 추가</Btn>
         </div>
       </div>
@@ -168,6 +213,14 @@ function VendorsView({ data, setData }) {
           isEdit={!!editing}
           onCancel={() => { setShowForm(false); setEditing(null); }}
           onSave={saveVendor}
+        />
+      )}
+
+      {showImport && (
+        <VendorImportModal
+          existingVendors={data.vendors}
+          onCancel={() => setShowImport(false)}
+          onImport={importVendors}
         />
       )}
     </div>
