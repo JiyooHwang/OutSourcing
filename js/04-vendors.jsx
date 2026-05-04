@@ -93,8 +93,9 @@ function VendorsView({ data, setData }) {
           updatedExisting.set(existing.id, merged);
         }
       } else {
-        const { isDuplicate, ...clean } = incoming;
-        toAppend.push({ id: uid(), createdAt: now, ...clean });
+        const clean = Object.assign({}, incoming);
+        delete clean.isDuplicate;
+        toAppend.push(Object.assign({ id: uid(), createdAt: now }, clean));
       }
     }
 

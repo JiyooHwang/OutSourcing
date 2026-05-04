@@ -1,6 +1,17 @@
 // =============================================================
 // 공용 UI 컴포넌트 (Button, Input, Modal, Table 등)
+// 주의: object rest 패턴(...props)을 쓰지 않습니다.
+// Babel standalone이 여러 .jsx 파일에서 동일 헬퍼(_excluded)를
+// 전역에 중복 선언해서 충돌나는 문제를 회피하기 위함.
 // =============================================================
+
+function _omit(obj, keys) {
+  const r = {};
+  for (const k in obj) {
+    if (!keys.includes(k)) r[k] = obj[k];
+  }
+  return r;
+}
 
 function Card({ children }) {
   return (
@@ -54,46 +65,60 @@ function Field({ label, full, children }) {
   );
 }
 
-function Input({ className = "", ...props }) {
+function Input(props) {
+  const className = props.className || "";
+  const rest = _omit(props, ["className"]);
   return (
     <input
       className={
         "w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 " +
         className
       }
-      {...props}
+      {...rest}
     />
   );
 }
 
-function Textarea({ className = "", ...props }) {
+function Textarea(props) {
+  const className = props.className || "";
+  const rest = _omit(props, ["className"]);
   return (
     <textarea
       className={
         "w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 " +
         className
       }
-      {...props}
+      {...rest}
     />
   );
 }
 
-function Select({ className = "", children, ...props }) {
+function Select(props) {
+  const className = props.className || "";
+  const children = props.children;
+  const rest = _omit(props, ["className", "children"]);
   return (
     <select
       className={
         "w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 " +
         className
       }
-      {...props}
+      {...rest}
     >
       {children}
     </select>
   );
 }
 
-function Btn({ children, variant = "primary", small, type = "button", className = "", ...props }) {
-  const base = "inline-flex items-center justify-center rounded-md font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
+function Btn(props) {
+  const children = props.children;
+  const variant = props.variant || "primary";
+  const small = props.small;
+  const type = props.type || "button";
+  const className = props.className || "";
+  const rest = _omit(props, ["children", "variant", "small", "type", "className"]);
+  const base =
+    "inline-flex items-center justify-center rounded-md font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
   const size = small ? "px-2.5 py-1 text-xs" : "px-3 py-2 text-sm";
   const styles = {
     primary: "bg-slate-900 text-white hover:bg-slate-700",
@@ -104,7 +129,7 @@ function Btn({ children, variant = "primary", small, type = "button", className 
     <button
       type={type}
       className={`${base} ${size} ${styles[variant] || styles.primary} ${className}`}
-      {...props}
+      {...rest}
     >
       {children}
     </button>
