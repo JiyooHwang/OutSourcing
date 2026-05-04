@@ -8,7 +8,7 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/[email protected]/dist/xlsx.full.min.js"></script>
     <style>
       html,
       body {
@@ -17,10 +17,58 @@
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo",
           "Pretendard", Roboto, "Noto Sans KR", sans-serif;
       }
+      #error-box {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: #fee2e2;
+        color: #991b1b;
+        padding: 12px 16px;
+        font-family: monospace;
+        font-size: 12px;
+        white-space: pre-wrap;
+        z-index: 9999;
+        border-bottom: 2px solid #ef4444;
+        max-height: 50vh;
+        overflow: auto;
+      }
+      #loading-fallback {
+        padding: 40px;
+        text-align: center;
+        color: #64748b;
+        font-family: sans-serif;
+      }
     </style>
+    <script>
+      // 페이지 위에 JS 에러를 직접 보여주는 진단기
+      window.__errors = [];
+      function renderErrors() {
+        var box = document.getElementById("error-box");
+        if (!box) {
+          box = document.createElement("div");
+          box.id = "error-box";
+          (document.body || document.documentElement).appendChild(box);
+        }
+        box.textContent = "JavaScript 에러:\n" + window.__errors.join("\n\n");
+      }
+      window.addEventListener("error", function (e) {
+        var msg = (e.message || "Error") + "  @  " + (e.filename || "") + ":" + (e.lineno || 0);
+        window.__errors.push(msg);
+        renderErrors();
+      });
+      window.addEventListener("unhandledrejection", function (e) {
+        var reason = e.reason;
+        var msg = "Promise rejection: " + (reason && (reason.stack || reason.message) || reason);
+        window.__errors.push(msg);
+        renderErrors();
+      });
+    </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div id="loading-fallback">로딩 중...</div>
+    </div>
     <!-- 로딩 순서가 곧 의존 순서입니다. 01부터 차례로 읽고, 99(App+마운트)가 마지막. -->
     <script type="text/babel" data-presets="react" src="./js/01-utils.jsx"></script>
     <script type="text/babel" data-presets="react" src="./js/02-ui.jsx"></script>
