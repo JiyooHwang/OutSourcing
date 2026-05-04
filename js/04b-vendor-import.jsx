@@ -87,7 +87,7 @@ function VendorImportModal({ existingVendors, onCancel, onImport }) {
       const skippedNoName = mapped.length - valid.length;
 
       const existingNames = new Set(
-        existingVendors.map((v) => v.name.trim().toLowerCase())
+        existingVendors.map((v) => (v.name || "").trim().toLowerCase())
       );
       const annotated = valid.map((v) => ({
         ...v,

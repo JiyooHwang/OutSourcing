@@ -73,7 +73,7 @@ function VendorsView({ data, setData }) {
   function importVendors(list, overwriteDup) {
     const now = new Date().toISOString();
     const existingByName = new Map(
-      data.vendors.map((v) => [v.name.trim().toLowerCase(), v])
+      data.vendors.map((v) => [(v.name || "").trim().toLowerCase(), v])
     );
 
     const updatedExisting = new Map();
@@ -119,6 +119,7 @@ function VendorsView({ data, setData }) {
         : `'${v.name}' 외주처를 삭제하시겠습니까?`;
     if (!confirm(msg)) return;
     setData({
+      ...data,
       vendors: data.vendors.filter((x) => x.id !== v.id),
       payments: data.payments.filter((p) => p.vendorId !== v.id),
     });
