@@ -45,7 +45,7 @@ function App() {
     <div className="min-h-screen">
       <header className="bg-white border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
-          <h1 className="text-lg font-bold">외주업체 관리</h1>
+          <h1 className="text-lg font-bold">외주 관리</h1>
           <nav className="flex gap-1">
             <NavButton active={tab === "dashboard"} onClick={() => changeTab("dashboard")}>
               대시보드
