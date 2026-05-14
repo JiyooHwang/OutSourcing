@@ -68,8 +68,8 @@ function App() {
       </header>
 
       <main className={
-        "mx-auto px-6 py-8 " +
-        (tab === "settlement" ? "max-w-[1500px]" : "max-w-6xl")
+        "px-6 py-8 " +
+        (tab === "settlement" ? "max-w-none" : "max-w-6xl mx-auto")
       }>
         {tab === "dashboard" && (
           <Dashboard stats={stats} onNavigate={changeTab} />
