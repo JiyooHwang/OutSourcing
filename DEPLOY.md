@@ -1,6 +1,6 @@
 # Vercel 배포 가이드
 
-이 문서는 외주업체 관리 툴을 Vercel에 배포하여 팀원들이 사용할 수 있게 하는 단계별 가이드입니다.
+이 문서는 외주 관리 툴을 Vercel에 배포하여 팀원들이 사용할 수 있게 하는 단계별 가이드입니다.
 
 ## 사전 준비
 
@@ -30,12 +30,12 @@
 1. https://console.cloud.google.com → 프로젝트 생성 (예: `outsourcing-auth`)
 2. 좌측 메뉴 **APIs & Services → OAuth consent screen**
    - User Type: **Internal** (Google Workspace 사내 도메인이 있다면) 또는 **External**
-   - App name: `외주업체 관리`
+   - App name: `외주 관리`
    - Support email: 본인 이메일
    - 저장
 3. **APIs & Services → Credentials → Create Credentials → OAuth client ID**
    - Application type: **Web application**
-   - Name: `외주업체 관리 - Vercel`
+   - Name: `외주 관리 - Vercel`
    - **Authorized redirect URIs**: 일단 비워두고 **Create** 클릭
    - 발급된 **Client ID**와 **Client Secret** 메모
 4. (3단계 배포 후) Vercel URL을 받으면 다시 와서 redirect URI 추가:
