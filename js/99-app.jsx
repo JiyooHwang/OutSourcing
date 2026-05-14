@@ -59,6 +59,9 @@ function App() {
             <NavButton active={tab === "projects"} onClick={() => changeTab("projects")}>
               프로젝트
             </NavButton>
+            <NavButton active={tab === "settlement"} onClick={() => changeTab("settlement")}>
+              월별 결산
+            </NavButton>
           </nav>
           <DataMenu data={data} setData={setData} />
         </div>
@@ -85,6 +88,9 @@ function App() {
             selectedProjectId={selectedProjectId}
             setSelectedProjectId={setSelectedProjectId}
           />
+        )}
+        {tab === "settlement" && (
+          <SettlementView data={data} />
         )}
       </main>
 
