@@ -180,8 +180,8 @@ function SettlementView({ data }) {
       </div>
 
       <Card>
-        <div className="overflow-auto max-h-[70vh]">
-          <table className="text-xs min-w-full">
+        <div className="overflow-x-auto overflow-y-auto max-h-[70vh] settlement-scroll">
+          <table className="text-xs min-w-max">
             <thead className="bg-slate-50 sticky top-0 z-10">
               <tr>
                 <Th2 sticky>프로젝트</Th2>

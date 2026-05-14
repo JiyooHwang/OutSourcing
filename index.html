@@ -39,6 +39,25 @@
         color: #64748b;
         font-family: sans-serif;
       }
+      /* 월별 결산 표의 가로 스크롤바를 항상 보이게 */
+      .settlement-scroll::-webkit-scrollbar {
+        height: 12px;
+        width: 12px;
+      }
+      .settlement-scroll::-webkit-scrollbar-track {
+        background: #f1f5f9;
+      }
+      .settlement-scroll::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 6px;
+      }
+      .settlement-scroll::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+      .settlement-scroll {
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 #f1f5f9;
+      }
     </style>
     <script>
       // 페이지 위에 JS 에러를 직접 보여주는 진단기
